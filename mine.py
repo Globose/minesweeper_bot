@@ -4,53 +4,53 @@ import pyautogui
 
 class Square:
     """Square"""
-    def __init__(self, x_pos,y_pos, color):
-        self.x_pos = x_pos
-        self.y_pos = y_pos
+    def __init__(self, x,y, color):
+        self.x = x
+        self.y = y
         self.color = color
-        self.width = 1
-        self.height = 1
+        self.size = 1
 
     def move_dot(self, image):
-        current_color = image[self.x_pos,self.y_pos]
-        for i in range(self.x_pos, 0, -1):
-            if (current_color == image[i,self.y_pos]).all():
-                self.x_pos = i
+        current_color = image[self.x,self.y]
+        for i in range(self.x, 0, -1):
+            if (current_color == image[i,self.y]).all():
+                self.x = i
             else:
                 break
         
-        for i in range(self.y_pos, 0, -1):
-            if (current_color == image[self.x_pos,i]).all():
-                self.y_pos = i
+        for i in range(self.y, 0, -1):
+            if (current_color == image[self.x,i]).all():
+                self.y = i
             else:
                 break
     
     def paint_dot(self, image):
-        image[self.x_pos, self.y_pos] = [0, 0, 255]
+        image[self.x, self.y] = [0, 0, 255]
     
     def paint_square(self, image):
-        for i in range(self.x_pos,self.x_pos+self.width):
-            image[i,self.y_pos] = [0, 0, 255]
-
-        for j in range(self.y_pos,self.y_pos+self.height):
-            image[self.x_pos,j] = [0, 0, 255]
+        for i in range(self.size):
+            image[i+self.x,self.y] = [0, 0, 255]
+            image[i+self.x,i+self.y] = [0, 0, 255]
+            image[self.x,self.y+i] = [0, 0, 255]
 
     def get_position(self):
-        return [self.x_pos,self.y_pos]
+        return [self.x,self.y]
 
     def expand(self, image):
-        for i in range(self.x_pos,len(image)):
-            if (image[i,self.y_pos]==self.color).all():
-                self.width += 1
-                continue
-            break
-        
-        for i in range(self.y_pos,len(image[0])):
-            if (image[self.x_pos,i]==self.color).all():
-                self.height += 1
-                continue
-            break
+        while self.size+self.x < len(image) and self.size+self.y < len(image[0]):
+            x_ok = (image[self.x+self.size,self.y]==self.color).all()
+            y_ok = (image[self.x,self.y+self.size]==self.color).all()
+            d_ok = (image[self.x+self.size,self.y+self.size]==self.color).all()
+            if not (x_ok and y_ok and d_ok):
+                break
+            self.size +=1
+            
+    def draw_big(self,image):
+        for x in range(0,10):
+            for y in range(0,10):
+                image[self.x+x,self.y+y] = [0,0,255]
 
+    
 def is_grey(rgb):
     return (164 < rgb[0] < 194) and (164 < rgb[1] < 194) and (164 < rgb[2] < 194)
 
@@ -68,30 +68,61 @@ def find_gray_dots(image):
 
     return squares
 
+def find_gray_dots_simple(image):
+    squares = []
+    for y in range(50,400,20):
+        for x in range(120,400,20):
+            if is_grey(image[x,y]):
+                squares.append(Square(x,y,image[x,y]))           
+
+    return squares
+
 def mouse_left(x,y):
     pyautogui.click(x,y)
 
-def save_image(image):
-    cv2.imwrite("image.png", image)
+def save_image(image, filename="image.png"):
+    cv2.imwrite(filename, image)
 
 def main():
     image = screenshot()
-    squares = find_gray_dots(image)
+    squares = find_gray_dots_simple(image)
 
     for s in squares:
         s.move_dot(image)
 
-    for s1 in squares:
-        for s2 in squares:
-            if s1 != s2 and s1.get_position() == s2.get_position():
+    squares = squares[:12]
+    for s in squares:
+        print(s)
+        print(s.get_position())
+
+    for i, s1 in enumerate(squares[:]):
+        for j,s2 in enumerate(squares[:], start = i):
+            if s1.get_position() == s2.get_position() and s1 != s2:
+                print(s1,s2)
                 squares.remove(s2)
-    
-    for s1 in squares:
-        s1.expand(image)
+                print("remove",i,j)
 
     for s in squares:
+        print(s.get_position())
+
+    # for i,s1 in enumerate(squares[:]):
+    #     for j, s2 in enumerate(squares[:], start=i):
+    #         if s1 != s2 and s1.get_position() == s2.get_position():
+    #             print("remove",i,j)
+    #             squares.remove(s2)
+
+    # for s1 in squares:
+    #     s1.expand(image)
+
+    # for i,s in enumerate(squares[:]):
+    #     if s.size < 4:
+    #         squares.remove(s)
+
+    for s in squares:
+        #if (s.size == 22): continue
         s.paint_square(image)
 
+    print(len(squares))
     save_image(image)
 
 if __name__ == '__main__':

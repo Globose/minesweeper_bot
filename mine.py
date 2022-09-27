@@ -85,15 +85,10 @@ def save_image(image, filename="image.png"):
 
 def main():
     image = screenshot()
-    squares = find_gray_dots_simple(image)
+    squares = find_gray_dots(image)
 
     for s in squares:
         s.move_dot(image)
-
-    squares = squares[:12]
-    for s in squares:
-        print(s)
-        print(s.get_position())
 
     for i, s1 in enumerate(squares[:]):
         for j,s2 in enumerate(squares[:], start = i):
@@ -102,8 +97,8 @@ def main():
                 squares.remove(s2)
                 print("remove",i,j)
 
-    for s in squares:
-        print(s.get_position())
+    # for s in squares:
+    #     print(s.get_position())
 
     # for i,s1 in enumerate(squares[:]):
     #     for j, s2 in enumerate(squares[:], start=i):
@@ -125,5 +120,25 @@ def main():
     print(len(squares))
     save_image(image)
 
+class Test:
+    """test"""
+    def __init__(self, t):
+        self.t = t
+
+def test():
+    list1 = []
+    for x in range(10):
+        list1.append(Test(x))
+        list1.append(Test(x))
+    
+    # for i, x in enumerate(list1[:]):
+    #     for y in enumerate(list1[:], start:
+    #         if x != y and x.t == y.t:
+    #             list1.
+    
+    
+
+
 if __name__ == '__main__':
     main()
+    #test()

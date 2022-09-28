@@ -127,18 +127,25 @@ class Test:
 
 def test():
     list1 = []
-    for x in range(10):
+    for x in range(4):
         list1.append(Test(x))
         list1.append(Test(x))
     
-    # for i, x in enumerate(list1[:]):
-    #     for y in enumerate(list1[:], start:
-    #         if x != y and x.t == y.t:
-    #             list1.
+    for i, x in enumerate(list1):
+        print("x",i,x.t)
+        for j,y in enumerate(list1[i:]):
+            print("y",j,y.t)
+            print("E",x.t,y.t,x,y)
+            if x != y and x.t == y.t:
+                list1.remove(y)
+                print("remove")
+    
+    for i in list1:
+        print(i.t)
     
     
 
 
 if __name__ == '__main__':
-    main()
-    #test()
+    #main()
+    test()

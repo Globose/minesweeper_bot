@@ -10,6 +10,8 @@ class Square:
         self.y = y
         self.color = color
         self.size = 1
+        self.type = -1
+        self.neigh = []
 
     def move_dot(self, image):
         current_color = image[self.y,self.x]
@@ -38,6 +40,10 @@ class Square:
             image[i+self.y,self.x] = [0, 0, 255]
             image[i+self.y,i+self.x] = [0, 0, 255]
             image[self.y,self.x+i] = [0, 0, 255]
+            
+    def paint_neigh(self, image):
+        for n in self.neigh:
+            n.paint_square(image)
 
     def get_position(self):
         return [self.y,self.x]
@@ -61,13 +67,22 @@ class Board:
         self.board = board
         self.bombs = bombs
         self.button_pos = button_pos
-        
+        for i, col in enumerate(board):
+            for j, sq in enumerate(col):
+                for k in range(i-1, i+2):
+                    for l in range(j-1, j+2):
+                        if (k != i or l != j) and (0 <= k < len(board) and 0 <= l < len(board[0])):
+                            sq.neigh.append(board[k][l])
+
     def right_click_all(self):
         for column in self.board:
             for square in column:
                 pyautogui.rightClick(square.x+square.size/2,
                     square.y+square.size/2)
     
+    def status(self, image):
+        """res"""
+
 def is_grey(rgb):
     return (164 < rgb[0] < 194) and (164 < rgb[1] < 194) and (164 < rgb[2] < 194)
 
@@ -78,8 +93,8 @@ def screenshot():
 
 def find_gray_dots(image):
     squares = []
-    for y in range(0,len(image),10):
-        for x in range(0,len(image[0]),10):
+    for x in range(0,len(image[0]),10):
+        for y in range(0,len(image),10):
             if is_grey(image[y,x]):
                 squares.append(Square(x,y,image[y,x]))
 
@@ -91,41 +106,23 @@ def mouse_right(x,y):
 def save_image(image, filename="image.png"):
     cv2.imwrite(filename, image)
 
-def create_boards(squares):
-    columns = []
-    boards = []
+def get_squares_same_row(squares, square):
+    out_list = []
     for s in squares:
-        row = [s]
-        last_y = s.y
-        col_x = s.x
-        for s2 in squares[:]:
-            if s2.size == s.size and s2.x == col_x and \
-                s2.y > last_y+s.size and s2.y < last_y+2*s.size:
-                    row.append(s2)
-                    last_y = s2.y
-                    squares.remove(s2)
+        if s.y == square.y:
+            out_list.append(s)
+    return out_list
 
-        columns.append(row)
+def create_boards(squares):
+    rows = []
+    while len(squares) != 0:
+        square = squares.pop()
+        row = get_squares_same_row(squares, square)
+        if (len(row) < 6):
+            continue
+        rows.append(row)
+    return rows
     
-    for c in columns:
-        board = [c]
-        row_y = c[0].y
-        last_x = c[0].x
-        c_size = c[0].size
-        for c2 in columns[:]:
-            if row_y == c2[0].y and last_x + c_size < c2[0].x and \
-                last_x+2*c_size > c2[0].x and c_size == c2[0].size and \
-                    len(c2) == len(c):
-                        board.append(c2)
-                        last_x = c2[0].x
-                        columns.remove(c2)
-        if (len(board) > 7):
-            boards.append(board)
-    
-    boards_c = []
-    for b in boards:
-        boards_c.append(Board(b,-1,(100,100)))
-    return boards_c
 
 def main():
     image = screenshot()
@@ -146,15 +143,19 @@ def main():
         if s.size < 4:
             squares.remove(s)
 
-    for s in squares:
-        s.paint_square(image)
+    rows = create_boards(squares)
+    print(len(rows))
+    # print("Boards =",len(boards))
+    # for i,b in enumerate(boards):
+    #     if i != 1:
+    #         continue
+    #     for col in b.board:
+    #         for sq in col:
+    #             sq.paint_square(image)
 
-    print(len(squares))
-    boards = create_boards(squares)
-    print(len(boards))
-    for b in boards:
-        b.right_click_all()
+    s.paint_square(image)
     save_image(image)
 
 if __name__ == '__main__':
     main()
+

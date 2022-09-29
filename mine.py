@@ -46,7 +46,7 @@ class Square:
             n.paint_square(image)
 
     def get_position(self):
-        return [self.y,self.x]
+        return [self.x,self.y]
 
     def expand(self, image):
         while self.size+self.y < len(image) and self.size+self.x < len(image[0]):
@@ -106,23 +106,41 @@ def mouse_right(x,y):
 def save_image(image, filename="image.png"):
     cv2.imwrite(filename, image)
 
-def get_squares_same_row(squares, square):
-    out_list = []
-    for s in squares:
-        if s.y == square.y:
-            out_list.append(s)
-    return out_list
-
 def create_boards(squares):
-    rows = []
+    cols = []
     while len(squares) != 0:
-        square = squares.pop()
-        row = get_squares_same_row(squares, square)
-        if (len(row) < 6):
-            continue
-        rows.append(row)
-    return rows
+        square = squares.pop(0)
+        col = [square]
+        square_added = True
+        while square_added:
+            square_added = False
+            for s in squares:
+                if (s.x == square.x and
+                    s.y > col[-1].y+col[-1].size and s.y < col[-1].y+2*col[-1].size):
+                    col.append(s)
+                    squares.remove(s)
+                    square_added = True
+                    break
+        cols.append(col)
     
+    boards = []
+    while len(cols) != 0:
+        col = cols.pop(0)
+        board = [col]
+        col_added = True
+        while col_added:
+            col_added = False
+            for c in cols:
+                if (c[0].y == col[0].y and
+                    c[0].x > board[-1][0].x+board[-1][0].size and
+                    c[0].x < board[-1][0].x+2*board[-1][0].size):
+                    board.append(c)
+                    cols.remove(c)
+                    col_added = True
+                    break
+        if len(board) > 7:
+            boards.append(Board(board,10,(10,10)))
+    return boards
 
 def main():
     image = screenshot()
@@ -143,17 +161,10 @@ def main():
         if s.size < 4:
             squares.remove(s)
 
-    rows = create_boards(squares)
-    print(len(rows))
-    # print("Boards =",len(boards))
-    # for i,b in enumerate(boards):
-    #     if i != 1:
-    #         continue
-    #     for col in b.board:
-    #         for sq in col:
-    #             sq.paint_square(image)
+    boards = create_boards(squares)
+    for board in boards:
+        board.right_click_all()
 
-    s.paint_square(image)
     save_image(image)
 
 if __name__ == '__main__':

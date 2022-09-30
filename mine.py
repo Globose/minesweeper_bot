@@ -10,7 +10,9 @@ class Square:
         self.y = y
         self.color = color
         self.size = 1
-        self.type = -1
+        self.open = False
+        #types: (1-8) siffror, (0) bomb, (-1) ingenitng
+        self.type = None
         self.neigh = []
 
     def move_dot(self, image):
@@ -61,11 +63,15 @@ class Square:
         for x in range(0,10):
             for y in range(0,10):
                 image[self.y+y,self.x+x] = [0,0,255]
+                
+    def click(self):
+        pyautogui.leftClick(self.x+self.size/2,self.y+self.size/2)
 
-class Board:
+class Game:
     def __init__(self, board, bombs, button_pos):
         self.board = board
         self.bombs = bombs
+        self.solved = False
         self.button_pos = button_pos
         for i, col in enumerate(board):
             for j, sq in enumerate(col):
@@ -73,15 +79,6 @@ class Board:
                     for l in range(j-1, j+2):
                         if (k != i or l != j) and (0 <= k < len(board) and 0 <= l < len(board[0])):
                             sq.neigh.append(board[k][l])
-
-    def right_click_all(self):
-        for column in self.board:
-            for square in column:
-                pyautogui.rightClick(square.x+square.size/2,
-                    square.y+square.size/2)
-    
-    def status(self, image):
-        """res"""
 
 def is_grey(rgb):
     return (164 < rgb[0] < 194) and (164 < rgb[1] < 194) and (164 < rgb[2] < 194)
@@ -100,13 +97,13 @@ def find_gray_dots(image):
 
     return squares
 
-def mouse_right(x,y):
-    pyautogui.rightClick(x,y)
+def mouse_left(x,y):
+    pyautogui.leftClick(x,y)
 
 def save_image(image, filename="image.png"):
-    cv2.imwrite(filename, image)
+    cv2.imwrite(filename, image)    
 
-def create_boards(squares):
+def create_games(squares):
     cols = []
     while len(squares) != 0:
         square = squares.pop(0)
@@ -123,7 +120,7 @@ def create_boards(squares):
                     break
         cols.append(col)
     
-    boards = []
+    games = []
     while len(cols) != 0:
         col = cols.pop(0)
         board = [col]
@@ -131,21 +128,20 @@ def create_boards(squares):
         while col_added:
             col_added = False
             for c in cols:
-                if (c[0].y == col[0].y and
-                    c[0].x > board[-1][0].x+board[-1][0].size and
-                    c[0].x < board[-1][0].x+2*board[-1][0].size):
+                if (c[0].y == col[0].y and len(c)==len(col) and
+                        c[0].x > board[-1][0].x+board[-1][0].size and
+                        c[0].x < board[-1][0].x+2*board[-1][0].size):
                     board.append(c)
                     cols.remove(c)
                     col_added = True
                     break
         if len(board) > 7:
-            boards.append(Board(board,10,(10,10)))
-    return boards
+            games.append(Game(board,10,(10,10)))
+    return games
 
-def main():
-    image = screenshot()
+def find_squares(image):
     squares = find_gray_dots(image)
-
+    
     for s in squares:
         s.move_dot(image)
 
@@ -161,10 +157,20 @@ def main():
         if s.size < 4:
             squares.remove(s)
 
-    boards = create_boards(squares)
-    for board in boards:
-        board.right_click_all()
+    return squares
 
+def solve_games(games):
+    for game in games:
+        start_sq = game.board[len(game.board)//2][len(game.board[0])//2]
+        start_sq.click()
+
+def main():
+    image = screenshot()
+    squares = find_squares(image)
+    
+    games = create_games(squares)
+    solve_games(games)
+    
     save_image(image)
 
 if __name__ == '__main__':

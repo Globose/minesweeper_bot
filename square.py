@@ -4,14 +4,18 @@ import pyautogui
 
 class Square:
     """Square"""
+    
     def __init__(self, x,y, color):
         self.x = x
         self.y = y
         self.color = color
-        self.size = 1
-        #types: (1-8) siffror, (0) bomb, (-1) ingenitng, (-2) oöppnad
-        self.type = -2
+        self.size = 10
+        #types: (1-8) siffror, (0) bomb, (9) ingenitng, (10) oöppnad
+        self.type = 10
         self.neigh = []
+        self.COLORS = [[0,0,0],[250,0,0],[0,200,0],[0,0,250],[100,20,20],
+        [30,30,90],[100,100,20],[20,20,20],[100,100,100],
+        [255,200,200],[255,255,255]]
 
     def move_dot(self, image):
         current_color = image[self.y,self.x]
@@ -60,7 +64,7 @@ class Square:
     def draw_big(self,image):
         for x in range(0,10):
             for y in range(0,10):
-                image[self.y+y,self.x+x] = [0,0,255]
+                image[self.y+y,self.x+x] = self.COLORS[self.type]
                 
     def click(self):
         pyautogui.leftClick(self.x+self.size/2,self.y+self.size/2)
@@ -73,7 +77,7 @@ class Square:
                 colors.append(image[self.y+j*self.size//4-1,self.x+i*self.size//4-1])
                 image[self.y+j*self.size//4,self.x+i*self.size//4-1] = [255,0,255]
         
-        value = -1
+        value = 9
         for col in colors:
             if col[0] > 235 and col[2] < 80: #1
                 value = 1
@@ -92,15 +96,17 @@ class Square:
             elif 110<col[0]<134 and 110 < col[1]< 134 and 110 < col[2]<134:
                 value = 8
             elif col[0] > 195 and col[1] > 195 and col[2] > 195: #oöppnad
-                value = -2
+                value = 10
             
-            if value > -1:
+            if value < 9:
                 break
             
         if value != self.type:
+            print(value,self.type)
+            self.type = value
+            for n in self.neigh:
+                n.update(image)
             
-            
-        
     def update_from_image(self,image):
         """e"""
 
@@ -116,6 +122,11 @@ class Game:
                     for l in range(j-1, j+2):
                         if (k != i or l != j) and (0 <= k < len(board) and 0 <= l < len(board[0])):
                             sq.neigh.append(board[k][l])
+                            
+    def draw_game(self, image):
+        for col in self.board:
+            for sq in col:
+                sq.draw_big(image)
 
 
 def is_grey(rgb):

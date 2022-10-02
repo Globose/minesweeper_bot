@@ -11,6 +11,7 @@ def solve_games(games):
         start_sq.click()
         image = screenshot()
         start_sq.update(image)
+        game.draw_game(image)
         save_image(image)
 
 def main():
@@ -18,7 +19,6 @@ def main():
     squares = find_squares(image)
     games = create_games(squares)
     solve_games(games)
-    
 
 if __name__ == '__main__':
     main()

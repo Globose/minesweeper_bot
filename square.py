@@ -11,7 +11,9 @@ class Square:
         self.color = color
         self.size = 10
         #types: (1-8) siffror, (0) bomb, (9) ingenitng, (10) oöppnad
-        self.type = 10
+        self.type_visual = 10
+        self.type_hidden = 10
+        self.clik = False
         self.neigh = []
         self.COLORS = [[0,0,0],[250,0,0],[0,200,0],[0,0,250],[100,20,20],
         [30,30,90],[100,100,20],[20,20,20],[100,100,100],
@@ -64,13 +66,12 @@ class Square:
     def draw_big(self,image):
         for x in range(0,10):
             for y in range(0,10):
-                image[self.y+y,self.x+x] = self.COLORS[self.type]
+                image[self.y+y,self.x+x] = self.COLORS[self.type_visual]
                 
     def click(self):
-        pyautogui.leftClick(self.x+self.size/2,self.y+self.size/2)
-        self.open = True
+        pyautogui.rightClick(self.x+self.size/2,self.y+self.size/2)
     
-    def update(self, image):
+    def update_visual(self, image):
         colors = []
         for i in range(0,4):
             for j in range(0,4):
@@ -101,11 +102,11 @@ class Square:
             if value < 9:
                 break
             
-        if value != self.type:
-            print(value,self.type)
-            self.type = value
+        if value != self.type_visual:
+            print(value,self.type_visual)
+            self.type_visual = value
             for n in self.neigh:
-                n.update(image)
+                n.update_visual(image)
             
     def update_from_image(self,image):
         """e"""

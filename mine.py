@@ -13,19 +13,26 @@ def solve_games(games):
     for game in games:
         for col in game.board:
             for sq in col:
-                sq.click()
-                # if sq.clik:
-                #     sq.click()
-                #     image = screenshot()
-        #         #     sq.update_visual(image)
-        # game.draw_game(image)
-        # save_image(image)
+                #sq.click()
+                if sq.clik:
+                    sq.click()
+                    time.sleep(0.1)
+                    image = screenshot()
+                    sq.update_visual(image)
+        game.draw_game(image)
+    save_image(image)
+
+
 
 def main():
     image = screenshot()
     squares = find_squares(image)
-    games = create_games(squares)
+    
+    games = create_games(squares, image)
+
+    save_image(image)
     solve_games(games)
+
 
 if __name__ == '__main__':
     main()

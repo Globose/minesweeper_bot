@@ -9,10 +9,11 @@ class Square:
         self.x = x
         self.y = y
         self.color = color
-        self.size = 10
+        self.size = 1
         #types: (1-8) siffror, (0) bomb, (9) ingenitng, (10) oöppnad
         self.type_visual = 10
         self.type_hidden = 10
+        self.open = False
         self.clik = False
         self.neigh = []
         self.COLORS = [[0,0,0],[250,0,0],[0,200,0],[0,0,250],[100,20,20],
@@ -69,14 +70,15 @@ class Square:
                 image[self.y+y,self.x+x] = self.COLORS[self.type_visual]
                 
     def click(self):
-        pyautogui.rightClick(self.x+self.size/2,self.y+self.size/2)
+        pyautogui.leftClick(self.x+self.size/2,self.y+self.size/2)
+        self.open = True
     
     def update_visual(self, image):
         colors = []
         for i in range(0,4):
             for j in range(0,4):
-                colors.append(image[self.y+j*self.size//4-1,self.x+i*self.size//4-1])
-                image[self.y+j*self.size//4,self.x+i*self.size//4-1] = [255,0,255]
+                colors.append(image[self.y+j*self.size//4-2,self.x+i*self.size//4-2])
+                image[self.y+j*self.size//4-1,self.x+i*self.size//4-1] = [255,0,255]
         
         value = 9
         for col in colors:
@@ -103,7 +105,7 @@ class Square:
                 break
             
         if value != self.type_visual:
-            print(value,self.type_visual)
+            #print(value,self.type_visual)
             self.type_visual = value
             for n in self.neigh:
                 n.update_visual(image)
@@ -153,7 +155,7 @@ def mouse_left(x,y):
 def save_image(image, filename="image.png"):
     cv2.imwrite(filename, image)    
 
-def create_games(squares):
+def create_games(squares, image):
     cols = []
     while len(squares) != 0:
         square = squares.pop(0)
@@ -163,13 +165,14 @@ def create_games(squares):
             square_added = False
             for s in squares:
                 if (s.x == square.x and
-                    s.y > col[-1].y+col[-1].size and s.y < col[-1].y+2*col[-1].size):
+                        s.y > col[-1].y+col[-1].size*1.2 and 
+                        s.y < col[-1].y+2*col[-1].size):
                     col.append(s)
                     squares.remove(s)
                     square_added = True
                     break
         cols.append(col)
-    
+
     games = []
     while len(cols) != 0:
         col = cols.pop(0)

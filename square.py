@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import pyautogui
+import time
 
 class Square:
     """Square"""
@@ -13,10 +14,8 @@ class Square:
         #types: (1-8) siffror, (0) bomb, (9) ingenitng, (10) oöppnad
         self.type_visual = 10
         self.type_hidden = 10
-        self.open = False
-        self.clik = False
         self.neigh = []
-        self.COLORS = [[0,0,0],[250,0,0],[0,200,0],[0,0,250],[100,20,20],
+        self.COLORS = [[0,127,255],[250,0,0],[0,200,0],[0,0,250],[100,20,20],
         [30,30,90],[100,100,20],[20,20,20],[100,100,100],
         [255,200,200],[255,255,255]]
 
@@ -67,18 +66,40 @@ class Square:
     def draw_big(self,image):
         for x in range(0,10):
             for y in range(0,10):
+                image[self.y+y,self.x+x] = self.COLORS[self.type_hidden]
+        for x in range(10,20):
+            for y in range(0,10):
                 image[self.y+y,self.x+x] = self.COLORS[self.type_visual]
                 
     def click(self):
         pyautogui.leftClick(self.x+self.size/2,self.y+self.size/2)
-        self.open = True
+    
+    def update(self):
+        fnd_bombs = 0
+        not_open = 0
+        for n in self.neigh:
+            if n.type_hidden == 0:
+                fnd_bombs += 1
+            elif n.type_visual == 10:
+                not_open += 1
+        if fnd_bombs == self.type_hidden:
+            for n in self.neigh:
+                if n.type_hidden == 10:
+                    n.type_hidden = 9
+        elif not_open == self.type_hidden - fnd_bombs:
+            for n in self.neigh:
+                if n.type_hidden == 10:
+                    n.type_hidden = 0   
+                    for nn in n.neigh:
+                        if 0 < nn.type_hidden < 9:
+                            nn.update()
     
     def update_visual(self, image):
         colors = []
-        for i in range(0,4):
-            for j in range(0,4):
-                colors.append(image[self.y+j*self.size//4-2,self.x+i*self.size//4-2])
-                image[self.y+j*self.size//4-1,self.x+i*self.size//4-1] = [255,0,255]
+        for i in range(0,6):
+            for j in range(0,6):
+                colors.append(image[self.y+j*self.size//6-2,self.x+i*self.size//6-2])
+                image[self.y+j*self.size//6-1,self.x+i*self.size//6-1] = [255,0,255]
         
         value = 9
         for col in colors:
@@ -105,13 +126,11 @@ class Square:
                 break
             
         if value != self.type_visual:
-            #print(value,self.type_visual)
             self.type_visual = value
+            self.type_hidden = value
             for n in self.neigh:
                 n.update_visual(image)
-            
-    def update_from_image(self,image):
-        """e"""
+
 
 class Game:
     def __init__(self, board, bombs, button_pos):
@@ -130,7 +149,35 @@ class Game:
         for col in self.board:
             for sq in col:
                 sq.draw_big(image)
+    
+    def solve_game(self):
+        click_squares =[self.board[len(self.board)//2][len(self.board[0])//2]]
+        while len(click_squares) != 0:
+            for s in click_squares:
+                s.click()
+            
+            time.sleep(0.1)
+            image = screenshot()
+            
+            for s in click_squares:
+                s.update_visual(image)
+                        
+            click_squares = []
+            
+            for col in self.board:
+                for s in col:
+                    if 0 < s.type_hidden < 9:
+                        s.update()
+            
+            for col in self.board:
+                for s in col:
+                    if s.type_hidden == 9 and s.type_visual == 10:
+                        click_squares.append(s)
 
+            # image = screenshot()
+            # self.draw_game(image)
+            # save_image(image)
+        
 
 def is_grey(rgb):
     return (164 < rgb[0] < 194) and (164 < rgb[1] < 194) and (164 < rgb[2] < 194)

@@ -3,6 +3,13 @@ import cv2
 import pyautogui
 import time
 
+
+def same_color(color_correct, color_test):
+    for c1, c2 in zip(color_correct,color_test):
+        if c1-2 > c2 or c2 > c1+2:
+            return False
+    return True
+
 class Square:
     """Square"""
     
@@ -18,28 +25,28 @@ class Square:
         self.COLORS = [[0,127,255],[250,0,0],[0,200,0],[0,0,250],[100,20,20],
         [30,30,90],[100,100,20],[20,20,20],[100,100,100],
         [255,200,200],[255,255,255]]
-
+            
     def move_dot(self, image):
         current_color = image[self.y,self.x]
         moved = True
         while moved:
             moved = False
             for i in range(self.x-1, 0, -1):
-                if (current_color == image[self.y,i]).all():
+                if same_color(current_color,image[self.y,i]):
                     self.x = i
                     moved = True
                 else:
                     break
             
             for i in range(self.y-1, 0, -1):
-                if (current_color == image[i,self.x]).all():
+                if same_color(current_color,image[i,self.x]):
                     self.y = i
                     moved = True
                 else:
                     break
     
     def paint_dot(self, image):
-        image[self.y, self.x] = [0, 0, 255]
+        image[self.y, self.x+1] = [0, 0, 255]
     
     def paint_square(self, image):
         for i in range(self.size):
@@ -56,9 +63,9 @@ class Square:
 
     def expand(self, image):
         while self.size+self.y < len(image) and self.size+self.x < len(image[0]):
-            x_ok = (image[self.y,self.x+self.size]==self.color).all()
-            y_ok = (image[self.y+self.size, self.x]==self.color).all()
-            d_ok = (image[self.y+self.size,self.x+self.size]==self.color).all()
+            x_ok = same_color(self.color, image[self.y,self.x+self.size])
+            y_ok = same_color(self.color,image[self.y+self.size, self.x])
+            d_ok = same_color(self.color, image[self.y+self.size,self.x+self.size])
             if not (x_ok and y_ok and d_ok):
                 break
             self.size +=1
@@ -174,13 +181,14 @@ class Game:
                     if s.type_hidden == 9 and s.type_visual == 10:
                         click_squares.append(s)
 
-            # image = screenshot()
-            # self.draw_game(image)
-            # save_image(image)
+        image = screenshot()
+        self.draw_game(image)
+        save_image(image)
+            
         
 
 def is_grey(rgb):
-    return (164 < rgb[0] < 194) and (164 < rgb[1] < 194) and (164 < rgb[2] < 194)
+    return (164 < rgb[0] < 192) and (164 < rgb[1] < 192) and (164 < rgb[2] < 192)
 
 def screenshot():
     image = pyautogui.screenshot()
@@ -219,7 +227,7 @@ def create_games(squares, image):
                     square_added = True
                     break
         cols.append(col)
-
+    
     games = []
     while len(cols) != 0:
         col = cols.pop(0)
@@ -241,7 +249,7 @@ def create_games(squares, image):
 
 def find_squares(image):
     squares = find_gray_dots(image)
-    
+
     for s in squares:
         s.move_dot(image)
 

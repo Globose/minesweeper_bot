@@ -3,7 +3,7 @@ import cv2
 import pyautogui
 import time
 import square
-from square import is_grey, screenshot, find_gray_dots, mouse_left, save_image,create_games,find_squares
+from square import screenshot, save_image,create_games,find_squares
 
 def solve_games(games):
     pyautogui.PAUSE = 0
@@ -20,7 +20,6 @@ def main():
     squares = find_squares(image)
     games = create_games(squares, image)
     solve_games(games)
-
 
 if __name__ == '__main__':
     main()

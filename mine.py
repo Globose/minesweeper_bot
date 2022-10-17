@@ -1,26 +1,13 @@
-import numpy as np
-import cv2
-import pyautogui
-import time
-import square
-from square import screenshot, save_image,create_games,find_squares
-
-def solve_games(games):
-    pyautogui.PAUSE = 0
-    for game in games:
-        game.solve_game()
-    
-    image = screenshot()
-    for game in games:
-        game.draw_game(image)
-    save_image(image)
+"""Mine.py"""
+import mine_game as game
 
 def main():
-    image = screenshot()
-    squares = find_squares(image)
-    games = create_games(squares, image)
-    solve_games(games)
+    """Main"""
+    image = game.screenshot()
+    tiles = game.find_tiles(image)
+    games = game.create_games(tiles)
+    for g in games:
+        g.solve_game()
 
 if __name__ == '__main__':
     main()
-

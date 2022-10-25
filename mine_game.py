@@ -335,7 +335,7 @@ class Game:
                 last_mouse = 0
                 self.reset()
                 click_tiles = ([self.board[len(self.board)//2]
-                                  [len(self.board[0])//2]])
+                                [len(self.board[0])//2]])
                 new_game = False
             elif len(click_tiles) == 0:
                 tile_guess = get_guess_tile(self.board)

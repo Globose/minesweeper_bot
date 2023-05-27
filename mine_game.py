@@ -8,7 +8,6 @@ import pyautogui
 
 pyautogui.PAUSE = 0
 
-
 def screenshot():
     """Takes a screenshot of the screen and returns it"""
     image = pyautogui.screenshot()
@@ -186,7 +185,7 @@ class Tile:
         self.COLORS = [[0, 127, 255], [250, 0, 0], [0, 200, 0],
                        [0, 0, 250], [100, 20, 20], [30, 30, 90],
                        [100, 100, 20], [20, 20, 20], [100, 100, 100],
-                       [255, 200, 200], [255, 255, 255]]
+                       [255, 255, 0], [255, 255, 255]]
 
     def move_dot(self, image):
         """Moves the dot up left as long as the color is similar"""
@@ -235,7 +234,7 @@ class Tile:
 
     def update(self):
         """Looks if there is an update to the tile"""
-        if 1 > self.type_hidden or 9 < self.type_hidden:
+        if self.type_hidden < 1 or self.type_hidden > 9:
             return
         fnd_bombs = 0
         unknown = 0
@@ -265,7 +264,7 @@ class Tile:
                 colors.append(image[self.y+j*self.size//6-2,
                                     self.x+i*self.size // 6-2])
 
-        if colors[0][0] < 15 and colors[0][1] < 15 and colors[0][2] > 230:
+        if colors[0][0] < 70 and colors[0][1] < 70 and colors[0][2] > 180:
             self.type_visual = self.type_hidden = -1
             return
 
@@ -334,15 +333,9 @@ class Game:
             if new_game:
                 last_mouse = 0
                 self.reset()
-                click_tiles = ([self.board[len(self.board)//2]
-                                [len(self.board[0])//2]])
+                click_tiles = [self.board[len(self.board)//2][len(self.board[0])//2]]
                 new_game = False
-            elif len(click_tiles) == 0:
-                tile_guess = get_guess_tile(self.board)
-                if tile_guess is None:
-                    break
-                click_tiles.append(tile_guess)
-
+                
             current_mouse = pyautogui.position().x
             if last_mouse != current_mouse and last_mouse != 0:
                 break
@@ -353,11 +346,13 @@ class Game:
 
             time.sleep(0.07)
             image = screenshot()
-
+            
             for t in click_tiles:
                 t.update_visual(image)
+
                 if t.type_hidden == -1:
                     new_game = True
+                    
 
             if new_game:
                 continue
@@ -379,3 +374,11 @@ class Game:
                 for tile in column:
                     if tile.type_hidden == 9 and tile.type_visual == 10:
                         click_tiles.append(tile)
+
+            if len(click_tiles) == 0:
+                tile_guess = get_guess_tile(self.board)
+                if tile_guess is None:
+                    break
+                click_tiles.append(tile_guess)
+
+            

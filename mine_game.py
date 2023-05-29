@@ -15,6 +15,10 @@ def screenshot():
     return image
 
 
+def save_image(image, filename="image.png"):
+    cv2.imwrite(filename, image)   
+
+
 def is_grey(color):
     """Returns true if color is grey"""
     return ((164 < color[0] < 192) and
@@ -207,6 +211,18 @@ class Tile:
                 else:
                     break
 
+
+    def paint_dot(self, image):
+        image[self.y, self.x] = self.COLORS[self.type_hidden]
+
+
+    def paint_square(self, image):
+        for i in range(self.size):
+            image[i+self.y,self.x] = self.COLORS[self.type_visual]
+            image[i+self.y,i+self.x] = self.COLORS[self.type_hidden]
+            image[self.y,self.x+i] = self.COLORS[self.type_visual]
+            
+
     def position(self):
         """Returns the position of the tile"""
         return (self.x, self.y)
@@ -264,7 +280,14 @@ class Tile:
                 colors.append(image[self.y+j*self.size//6-2,
                                     self.x+i*self.size // 6-2])
 
-        if colors[0][0] < 70 and colors[0][1] < 70 and colors[0][2] > 180:
+        redFound = blackFound = 0
+        for col in colors:    
+            if col[0] < 50 and col[1] < 50 and col[2] > 200:
+                redFound += 1
+            elif col[0] < 20 and col[1] < 20 and col[2] < 20:
+                blackFound += 1
+        
+        if redFound > 3 and blackFound > 5:
             self.type_visual = self.type_hidden = -1
             return
 
@@ -349,10 +372,8 @@ class Game:
             
             for t in click_tiles:
                 t.update_visual(image)
-
                 if t.type_hidden == -1:
                     new_game = True
-                    
 
             if new_game:
                 continue
@@ -374,11 +395,14 @@ class Game:
                 for tile in column:
                     if tile.type_hidden == 9 and tile.type_visual == 10:
                         click_tiles.append(tile)
-
+            
             if len(click_tiles) == 0:
                 tile_guess = get_guess_tile(self.board)
                 if tile_guess is None:
                     break
                 click_tiles.append(tile_guess)
+
+    
+            
 
             
